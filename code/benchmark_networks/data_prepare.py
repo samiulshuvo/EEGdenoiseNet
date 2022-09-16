@@ -67,7 +67,11 @@ def prepare_data(EEG_all, noise_all, combin_num, train_per, noise_type):
     #################################  simulate noise signal of training set  ##############################
 
     #create random number between -10dB ~ 2dB
-    SNR_train_dB = np.random.uniform(-7, 2, (EEG_train.shape[0]))
+#     SNR_train_dB = np.random.uniform(-7, 2, (EEG_train.shape[0]))
+    SNR_train_dB = np.zeros(EEG_train.shape[0])
+    for i in range(EEG_train.shape[0]):
+         snr = random.randrange(-14, 4, 2)
+         SNR_train_dB = np.append(SNR_train_dB, snr)
     print(SNR_train_dB.shape)
     SNR_train = 10 ** (0.1 * (SNR_train_dB))
 
@@ -105,8 +109,10 @@ def prepare_data(EEG_all, noise_all, combin_num, train_per, noise_type):
     print('training data prepared', noiseEEG_train_end_standard.shape, EEG_train_end_standard.shape )
 
     #################################  simulate noise signal of validation  ##############################
+    SNR_val_dB = np.arange(-14, 4, 2, dtype=float)
+#     SNR_val_dB = np.linspace(-7.0, 2.0, num=(10))
 
-    SNR_val_dB = np.linspace(-7.0, 2.0, num=(10))
+
     SNR_val = 10 ** (0.1 * (SNR_val_dB))
 
     eeg_val = np.array(validation_eeg)
@@ -159,8 +165,8 @@ def prepare_data(EEG_all, noise_all, combin_num, train_per, noise_type):
     print('validation data prepared, validation data shape: ', noiseEEG_val_end_standard.shape, EEG_val_end_standard.shape)
 
     #################################  simulate noise signal of test  ##############################
-
-    SNR_test_dB = np.linspace(-7.0, 2.0, num=(10))
+    SNR_test_dB = np.arange(-14, 4, 2, dtype=float)
+#     SNR_test_dB = np.linspace(-7.0, 2.0, num=(10))
     SNR_test = 10 ** (0.1 * (SNR_test_dB))
 
     eeg_test = np.array(test_eeg)
