@@ -25,11 +25,11 @@ epochs = 50    # training epoch
 batch_size  = 40    # training batch size
 combin_num = 10    # combin EEG and noise ? times
 denoise_network = 'Simple_CNN'    # fcNN & Simple_CNN & Complex_CNN & RNN_lstm  & Novel_CNN 
-noise_type = 'EOG'
 
 
-result_location = r'E:/experiment_data/EEG_EEGN/'     #  Where to export network results   ############ change it to your own location #########
-foldername = 'EMG_unet112dense_10_rmsp_test'            # the name of the target folder (should be change when we want to train a new network)
+
+# result_location = r'E:/experiment_data/EEG_EEGN/'     #  Where to export network results   ############ change it to your own location #########
+# foldername = 'EMG_unet112dense_10_rmsp_test'            # the name of the target folder (should be change when we want to train a new network)
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 save_train = False
 save_vali = False
@@ -37,12 +37,12 @@ save_test = True
 
 
 ################################################## optimizer adjust parameter  ####################################################
-rmsp=tf.optimizers.RMSprop(lr=0.00005, rho=0.9)
-adam=tf.optimizers.Adam(lr=0.00005, beta_1=0.5, beta_2=0.9, epsilon=1e-08)
-sgd=tf.optimizers.SGD(lr=0.0002, momentum=0.9, decay=0.0, nesterov=False)
+# rmsp=tf.optimizers.RMSprop(lr=0.00005, rho=0.9)
+# adam=tf.optimizers.Adam(lr=0.00005, beta_1=0.5, beta_2=0.9, epsilon=1e-08)
+# sgd=tf.optimizers.SGD(lr=0.0002, momentum=0.9, decay=0.0, nesterov=False)
 
-optimizer = rmsp
-
+# optimizer = rmsp
+noise_type = 'EOG'
 if noise_type == 'EOG':
   datanum = 512
 elif noise_type == 'EMG':
@@ -69,39 +69,80 @@ elif noise_type == 'EMG':
 i = 1     # We run each NN for 10 times to increase  the  statistical  power  of  our  results
 noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, noiseEEG_test, EEG_test, test_std_VALUE = prepare_data(EEG_all = EEG_all, noise_all = noise_all, combin_num = 10, train_per = 0.8, noise_type = noise_type)
 
-
-if denoise_network == 'fcNN':
-  model = fcNN(datanum)
-
-elif denoise_network == 'Simple_CNN':
-  model = simple_CNN(datanum)
-
-elif denoise_network == 'Complex_CNN':
-  model = Complex_CNN(datanum)
-
-elif denoise_network == 'RNN_lstm':
-  model = RNN_lstm(datanum)
-
-elif denoise_network == 'Novel_CNN':
-  model = Novel_CNN(datanum)
+np.save("noiseinput_trainEOG.npy", noiseEEG_train)
+np.save("EEG_trainEOG.npy", EEG_train)
+np.save("noiseEEG_valEOG.npy", noiseEEG_val)
+np.save("EEG_valEOG.npy", EEG_val)
+np.save(" noiseEEG_testEOG.npy",  noiseEEG_test)
+np.save("EEG_testEOG.npy", EEG_test)
 
 
-else: 
-  print('NN name arror')
+noise_type = 'EMG'
+if noise_type == 'EOG':
+  datanum = 512
+elif noise_type == 'EMG':
+  datanum = 1024
 
 
-saved_model, history = train(model, noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, 
-                      epochs, batch_size,optimizer, denoise_network, 
-                      result_location, foldername , train_num = str(i))
+# We have reserved an example of importing an existing network
+'''
+path = os.path.join(result_location, foldername, "denoised_model")
+denoiseNN = tf.keras.models.load_model(path)
+'''
+#################################################### 数据输入 Import data #####################################################
 
-#denoised_test, test_mse = test_step(saved_model, noiseEEG_test, EEG_test)
+file_location = 'E:/experiment_data/EEGdenoiseNet/data/'                    ############ change it to your own location #########
+if noise_type == 'EOG':
+  EEG_all = np.load( file_location + 'EEG_all_epochs.npy')                              
+  noise_all = np.load( file_location + 'EOG_all_epochs.npy') 
+elif noise_type == 'EMG':
+  EEG_all = np.load( file_location + 'EEG_all_epochs_512hz.npy')                              
+  noise_all = np.load( file_location + 'EMG_all_epochs_512hz.npy') 
 
-# save signal
-save_eeg(saved_model, result_location, foldername, save_train, save_vali, save_test, 
-                    noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, noiseEEG_test, EEG_test, 
-                    train_num = str(i))
-np.save(result_location +'/'+ foldername + '/'+ str(i)  +'/'+ "nn_output" + '/'+ 'loss_history.npy', history)
+############################################################# Running #############################################################
+#for i in range(10):
+i = 1     # We run each NN for 10 times to increase  the  statistical  power  of  our  results
+noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, noiseEEG_test, EEG_test, test_std_VALUE = prepare_data(EEG_all = EEG_all, noise_all = noise_all, combin_num = 10, train_per = 0.8, noise_type = noise_type)
 
-#save model
-# path = os.path.join(result_location, foldername, str(i+1), "denoise_model")
-# tf.keras.models.save_model(saved_model, path)
+np.save("noiseinput_trainEMG.npy", noiseEEG_train)
+np.save("EEG_trainEMG.npy", EEG_train)
+np.save("noiseEEG_valEMG.npy", noiseEEG_val)
+np.save("EEG_valEMG.npy", EEG_val)
+np.save(" noiseEEG_testEMG.npy",  noiseEEG_test)
+np.save("EEG_testEMG.npy", EEG_test)
+
+# if denoise_network == 'fcNN':
+#   model = fcNN(datanum)
+
+# elif denoise_network == 'Simple_CNN':
+#   model = simple_CNN(datanum)
+
+# elif denoise_network == 'Complex_CNN':
+#   model = Complex_CNN(datanum)
+
+# elif denoise_network == 'RNN_lstm':
+#   model = RNN_lstm(datanum)
+
+# elif denoise_network == 'Novel_CNN':
+#   model = Novel_CNN(datanum)
+
+
+# else: 
+#   print('NN name arror')
+
+
+# saved_model, history = train(model, noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, 
+#                       epochs, batch_size,optimizer, denoise_network, 
+#                       result_location, foldername , train_num = str(i))
+
+# #denoised_test, test_mse = test_step(saved_model, noiseEEG_test, EEG_test)
+
+# # save signal
+# save_eeg(saved_model, result_location, foldername, save_train, save_vali, save_test, 
+#                     noiseEEG_train, EEG_train, noiseEEG_val, EEG_val, noiseEEG_test, EEG_test, 
+#                     train_num = str(i))
+# np.save(result_location +'/'+ foldername + '/'+ str(i)  +'/'+ "nn_output" + '/'+ 'loss_history.npy', history)
+
+# #save model
+# # path = os.path.join(result_location, foldername, str(i+1), "denoise_model")
+# # tf.keras.models.save_model(saved_model, path)
