@@ -16,3 +16,5 @@ Single-Channel-EEG-Denoise tool box could be find in Github(https://github.com/n
 
 ## Further research project in NCCLab
 Our laboratory also proposed an deep learning framework to separate neural signal and artifacts in the embedding space and reconstruct the denoised signal, which is called DeepSeparator. Could be find in Github(https://github.com/ncclabsustech/DeepSeparator).
+
+Dataset Limk: https://kaggle.com/datasets/a34bf008c038621913fb45436a795914260b2de67b823952d1e152ab5e354db7
